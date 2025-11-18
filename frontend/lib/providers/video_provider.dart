@@ -96,8 +96,7 @@ class VideoProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
-
-  /// Send videos directly to backend (NO Cloudinary upload)
+  
   Future<void> composeVideo() async {
     if (_videos.isEmpty) {
       _errorMessage = 'Add at least one video';
