@@ -9,17 +9,23 @@ dependencies:
     sdk: flutter
   # Supabase for storage
   supabase_flutter: ^2.3.4
+  three_dart: ^0.0.16
+  flutter_gl: ^0.0.21
+  webview_flutter: ^4.4.2
+  webview_flutter_web: ^0.2.2+4
+  
   # Video playback
   video_player: ^2.8.2
   # File picking
   file_picker: ^6.1.1
   # HTTP requests
-  http: ^1.2.0
+  http: ^0.13.6
   # State management
   provider: ^6.1.1
   # Environment variables
   flutter_dotenv: ^5.1.0
   # UUID generation
+  lottie: ^3.0.0
   uuid: ^4.3.3
 dev_dependencies:
   flutter_test:
@@ -29,3 +35,14 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/images/google.png
+    - assets/images/login_image.png
+    - assets/animations/hello_text.json
+    - assets/animations/hello.json
+    - assets/animations/loading.json
+    - assets/animations/login_computer.json
+    - assets/animations/welcome.json
+    - assets/animations/next.json
+    - assets/animations/flower_loading.json
+    
+    

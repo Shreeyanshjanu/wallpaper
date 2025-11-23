@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import '../models/video_item.dart';
+import 'package:wallpaper_composer/models/video_item.dart';
 
-class DraggableVideo extends StatefulWidget {
-  final VideoItem videoItem;
+class DraggableMedia extends StatefulWidget {
+  final MediaItem mediaItem;
   final Size canvasSize;
   final Function(double x, double y) onPositionChanged;
   final Function(double width, double height) onSizeChanged;
   final VoidCallback onRemove;
 
-  const DraggableVideo({
+  const DraggableMedia({
     Key? key,
-    required this.videoItem,
+    required this.mediaItem,
     required this.canvasSize,
     required this.onPositionChanged,
     required this.onSizeChanged,
@@ -19,11 +19,11 @@ class DraggableVideo extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<DraggableVideo> createState() => _DraggableVideoState();
+  State<DraggableMedia> createState() => _DraggableMediaState();
 }
 
-class _DraggableVideoState extends State<DraggableVideo> {
-  late VideoPlayerController _controller;
+class _DraggableMediaState extends State<DraggableMedia> {
+  VideoPlayerController? _controller;
   bool _isInitialized = false;
   late Offset _position;
   late Size _size;
@@ -32,34 +32,34 @@ class _DraggableVideoState extends State<DraggableVideo> {
   @override
   void initState() {
     super.initState();
-    // Initialize from videoItem
     _position = Offset(
-      widget.videoItem.x * widget.canvasSize.width,
-      widget.videoItem.y * widget.canvasSize.height,
+      widget.mediaItem.x * widget.canvasSize.width,
+      widget.mediaItem.y * widget.canvasSize.height,
     );
     _size = Size(
-      widget.videoItem.width * widget.canvasSize.width,
-      widget.videoItem.height * widget.canvasSize.height,
+      widget.mediaItem.width * widget.canvasSize.width,
+      widget.mediaItem.height * widget.canvasSize.height,
     );
     
-    print('DraggableVideo initialized: pos=$_position, size=$_size');
-    _initializeVideo();
+    if (widget.mediaItem.mediaType == 'video') {
+      _initializeVideo();
+    } else {
+      setState(() => _isInitialized = true);
+    }
   }
 
   void _initializeVideo() async {
     try {
       _controller = VideoPlayerController.networkUrl(
-        Uri.parse(widget.videoItem.videoUrl),
+        Uri.parse(widget.mediaItem.mediaUrl),
       );
       
-      await _controller.initialize();
-      _controller.setLooping(true);
-      _controller.play();
+      await _controller!.initialize();
+      _controller!.setLooping(true);
+      _controller!.play();
       
       if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
+        setState(() => _isInitialized = true);
       }
     } catch (e) {
       print('Error initializing video: $e');
@@ -68,32 +68,26 @@ class _DraggableVideoState extends State<DraggableVideo> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Add extra padding for resize handles and sliders
     return Positioned(
-      left: _position.dx - 20, // Extra space for handles
+      left: _position.dx - 20,
       top: _position.dy - 20,
       child: Container(
-        padding: const EdgeInsets.all(20), // Space for handles
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Main video container with resize handle
             Stack(
               clipBehavior: Clip.none,
               children: [
-                // The video box
                 GestureDetector(
                   onTap: () {
-                    print('Video tapped!');
-                    setState(() {
-                      _isSelected = !_isSelected;
-                    });
+                    setState(() => _isSelected = !_isSelected);
                   },
                   onPanUpdate: (details) {
                     setState(() {
@@ -114,13 +108,11 @@ class _DraggableVideoState extends State<DraggableVideo> {
                       ),
                       color: Colors.black,
                     ),
-                    child: _isInitialized
-                        ? VideoPlayer(_controller)
-                        : const Center(child: CircularProgressIndicator()),
+                    child: _buildMediaContent(),
                   ),
                 ),
 
-                // SELECTED indicator at top
+                // Type indicator
                 if (_isSelected)
                   Positioned(
                     top: -40,
@@ -132,7 +124,7 @@ class _DraggableVideoState extends State<DraggableVideo> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'SELECTED ${_size.width.toInt()}x${_size.height.toInt()}',
+                        '${widget.mediaItem.mediaType.toUpperCase()} ${_size.width.toInt()}x${_size.height.toInt()}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -141,7 +133,7 @@ class _DraggableVideoState extends State<DraggableVideo> {
                     ),
                   ),
 
-                // Remove button (always visible)
+                // Remove button
                 Positioned(
                   top: -15,
                   right: -15,
@@ -160,14 +152,13 @@ class _DraggableVideoState extends State<DraggableVideo> {
                   ),
                 ),
 
-                // BIG GREEN RESIZE HANDLE (only when selected)
+                // Resize handle
                 if (_isSelected)
                   Positioned(
                     bottom: -20,
                     right: -20,
                     child: GestureDetector(
                       onPanUpdate: (details) {
-                        print('Resizing: ${details.delta}');
                         setState(() {
                           _size = Size(
                             (_size.width + details.delta.dx).clamp(150.0, 1200.0),
@@ -187,13 +178,6 @@ class _DraggableVideoState extends State<DraggableVideo> {
                           color: Colors.green,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.yellow, width: 4),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black54,
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
                         ),
                         child: const Icon(
                           Icons.open_in_full,
@@ -206,7 +190,7 @@ class _DraggableVideoState extends State<DraggableVideo> {
               ],
             ),
 
-            // SLIDERS BELOW THE VIDEO (only when selected)
+            // Sliders (when selected)
             if (_isSelected)
               Container(
                 margin: const EdgeInsets.only(top: 10),
@@ -220,26 +204,14 @@ class _DraggableVideoState extends State<DraggableVideo> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      '📏 RESIZE CONTROLS',
-                      style: TextStyle(
-                        color: Colors.yellow,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                     Text(
                       'Width: ${_size.width.toInt()}px',
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     Slider(
                       value: _size.width,
                       min: 150,
                       max: 1200,
-                      divisions: 105,
-                      activeColor: Colors.blue,
-                      inactiveColor: Colors.grey,
                       onChanged: (value) {
                         setState(() {
                           _size = Size(value, _size.height);
@@ -250,18 +222,14 @@ class _DraggableVideoState extends State<DraggableVideo> {
                         });
                       },
                     ),
-                    const SizedBox(height: 10),
                     Text(
                       'Height: ${_size.height.toInt()}px',
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     Slider(
                       value: _size.height,
                       min: 150,
                       max: 1200,
-                      divisions: 105,
-                      activeColor: Colors.blue,
-                      inactiveColor: Colors.grey,
                       onChanged: (value) {
                         setState(() {
                           _size = Size(_size.width, value);
@@ -279,5 +247,21 @@ class _DraggableVideoState extends State<DraggableVideo> {
         ),
       ),
     );
+  }
+
+  Widget _buildMediaContent() {
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (widget.mediaItem.mediaType == 'video' && _controller != null) {
+      return VideoPlayer(_controller!);
+    } else {
+      // Display image
+      return Image.network(
+        widget.mediaItem.mediaUrl,
+        fit: BoxFit.cover,
+      );
+    }
   }
 }

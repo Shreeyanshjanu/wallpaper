@@ -1,30 +1,54 @@
-class VideoItem {
+class MediaItem {
   final String id;
-  final String videoUrl;
-  double x; // Normalized position (0-1)
-  double y; // Normalized position (0-1)
-  double width; // Normalized size (0-1)
-  double height; // Normalized size (0-1)
-  double startTime; // When video starts playing in composition
-  double duration; // How long video plays
-  String? localFilePath; // For web: Blob URL
+  final String mediaUrl;
+  final String mediaType; // 'video' or 'image'
+  final double x;
+  final double y;
+  final double width;
+  final double height;
+  final int startTime;
+  final int duration;
 
-  VideoItem({
+  MediaItem({
     required this.id,
-    required this.videoUrl,
-    this.x = 0.1,
-    this.y = 0.1,
-    this.width = 0.3,
-    this.height = 0.3,
-    this.startTime = 0,
-    this.duration = 120,
-    this.localFilePath,
+    required this.mediaUrl,
+    required this.mediaType,
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    required this.startTime,
+    required this.duration,
   });
 
-  // Convert to JSON for API
+  MediaItem copyWith({
+    String? mediaUrl,
+    String? mediaType,
+    double? x,
+    double? y,
+    double? width,
+    double? height,
+    int? startTime,
+    int? duration,
+  }) {
+    return MediaItem(
+      id: id,
+      mediaUrl: mediaUrl ?? this.mediaUrl,
+      mediaType: mediaType ?? this.mediaType,
+      x: x ?? this.x,
+      y: y ?? this.y,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      startTime: startTime ?? this.startTime,
+      duration: duration ?? this.duration,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
-      'video_url': videoUrl,
+      'id': id,
+      'media_url': mediaUrl,
+      'media_type': mediaType,
       'x': x,
       'y': y,
       'width': width,
@@ -32,29 +56,5 @@ class VideoItem {
       'start_time': startTime,
       'duration': duration,
     };
-  }
-
-  VideoItem copyWith({
-    String? id,
-    String? videoUrl,
-    double? x,
-    double? y,
-    double? width,
-    double? height,
-    double? startTime,
-    double? duration,
-    String? localFilePath,
-  }) {
-    return VideoItem(
-      id: id ?? this.id,
-      videoUrl: videoUrl ?? this.videoUrl,
-      x: x ?? this.x,
-      y: y ?? this.y,
-      width: width ?? this.width,
-      height: height ?? this.height,
-      startTime: startTime ?? this.startTime,
-      duration: duration ?? this.duration,
-      localFilePath: localFilePath ?? this.localFilePath,
-    );
   }
 }

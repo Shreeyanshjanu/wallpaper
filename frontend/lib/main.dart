@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/api_service.dart';
-import 'providers/video_provider.dart';
-import 'screens/canvas_screen.dart';
+import 'providers/media_provider.dart'; // Changed
+import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize services
-  await dotenv.load(fileName: ".env");
-  // Removed: await SupabaseService().initialize();
+  await Supabase.initialize(
+    url: 'https://kltaeskfqdmokgvogasf.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsdGFlc2tmcWRtb2tndm9nYXNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzI0OTQsImV4cCI6MjA3ODk0ODQ5NH0.NYDAhuvZWxV2DM6572FoFmWT70Sseny02vSMnb0nkhc',
+  );
+  
   ApiService().initialize();
   
   runApp(const MyApp());
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => VideoProvider(),
+      create: (_) => MediaProvider(), // Changed
       child: MaterialApp(
         title: 'Wallpaper Composer',
         debugShowCheckedModeBanner: false,
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           brightness: Brightness.dark,
         ),
-        home: const CanvasScreen(),
+        home: const LoginScreen(),
       ),
     );
   }

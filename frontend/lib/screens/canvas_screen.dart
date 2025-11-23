@@ -1,9 +1,8 @@
-// screens/canvas_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/video_provider.dart';
-import '../widgets/draggable_video.dart';
+import '../providers/media_provider.dart';
+import '../widgets/draggable_media.dart';
 
 class CanvasScreen extends StatelessWidget {
   const CanvasScreen({Key? key}) : super(key: key);
@@ -19,38 +18,35 @@ class CanvasScreen extends StatelessWidget {
       backgroundColor: Colors.grey[900],
       body: Row(
         children: [
-          // Canvas area
           Expanded(
             child: Container(
               color: Colors.white,
-              child: Consumer<VideoProvider>(
+              child: Consumer<MediaProvider>(
                 builder: (context, provider, child) {
                   return Stack(
                     children: [
-                      // Canvas background
                       Container(
                         width: canvasSize.width,
                         height: canvasSize.height,
                         color: Colors.white,
                       ),
                       
-                      // Video widgets
-                      ...provider.videos.map((video) {
-                        return DraggableVideo(
-                          key: ValueKey(video.id),
-                          videoItem: video,
+                      ...provider.mediaItems.map((media) {
+                        return DraggableMedia(
+                          key: ValueKey(media.id),
+                          mediaItem: media,
                           canvasSize: canvasSize,
                           onPositionChanged: (x, y) {
-                            provider.updateVideo(video.id, x: x, y: y);
+                            provider.updateMedia(media.id, x: x, y: y);
                           },
                           onSizeChanged: (width, height) {
-                            provider.updateVideo(
-                              video.id,
+                            provider.updateMedia(
+                              media.id,
                               width: width,
                               height: height,
                             );
                           },
-                          onRemove: () => provider.removeVideo(video.id),
+                          onRemove: () => provider.removeMedia(media.id),
                         );
                       }).toList(),
                     ],
@@ -60,17 +56,14 @@ class CanvasScreen extends StatelessWidget {
             ),
           ),
           
-          // Control panel
           Container(
             width: 300,
             color: Colors.grey[850],
-            child: Consumer<VideoProvider>(
+            child: Consumer<MediaProvider>(
               builder: (context, provider, child) {
                 return Column(
                   children: [
                     const SizedBox(height: 20),
-                    
-                    // Title
                     const Text(
                       'Wallpaper Composer',
                       style: TextStyle(
@@ -79,28 +72,25 @@ class CanvasScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    
                     const SizedBox(height: 20),
                     
-                    // Video count
+                    // Media count (UNLIMITED)
                     Text(
-                      '${provider.videoCount} / 10 videos',
+                      '${provider.mediaCount} media files',
                       style: const TextStyle(color: Colors.white70),
                     ),
                     
                     const SizedBox(height: 20),
                     
-                    // Add video button
+                    // Add media button
                     ElevatedButton.icon(
-                      onPressed: provider.canAddMore && !provider.isLoading
-                          ? provider.addVideo
-                          : null,
+                      onPressed: !provider.isLoading ? provider.addMedia : null,
                       icon: const Icon(Icons.add),
-                      label: const Text('Add Video'),
+                      label: const Text('Add Media (Videos/Images)'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
+                          horizontal: 20,
                           vertical: 16,
                         ),
                       ),
@@ -108,9 +98,8 @@ class CanvasScreen extends StatelessWidget {
                     
                     const SizedBox(height: 20),
                     
-                    // Compose button
                     ElevatedButton.icon(
-                      onPressed: provider.videos.isNotEmpty && !provider.isLoading
+                      onPressed: provider.mediaItems.isNotEmpty && !provider.isLoading
                           ? provider.composeVideo
                           : null,
                       icon: const Icon(Icons.video_library),
@@ -126,9 +115,8 @@ class CanvasScreen extends StatelessWidget {
                     
                     const SizedBox(height: 20),
                     
-                    // Clear all button
                     TextButton.icon(
-                      onPressed: provider.videos.isNotEmpty
+                      onPressed: provider.mediaItems.isNotEmpty
                           ? provider.clearAll
                           : null,
                       icon: const Icon(Icons.delete),
@@ -140,11 +128,9 @@ class CanvasScreen extends StatelessWidget {
                     
                     const SizedBox(height: 20),
                     
-                    // Loading indicator
                     if (provider.isLoading)
                       const CircularProgressIndicator(),
                     
-                    // Error message
                     if (provider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.all(16),
@@ -155,7 +141,6 @@ class CanvasScreen extends StatelessWidget {
                         ),
                       ),
                     
-                    // Download link
                     if (provider.downloadUrl != null)
                       Padding(
                         padding: const EdgeInsets.all(16),
@@ -189,16 +174,15 @@ class CanvasScreen extends StatelessWidget {
                     
                     const Spacer(),
                     
-                    // Instructions
                     const Padding(
                       padding: EdgeInsets.all(16),
                       child: Text(
                         'Instructions:\n'
-                        '1. Add up to 10 videos\n'
-                        '2. Drag to reposition\n'
-                        '3. Pinch to resize\n'
-                        '4. Compose when ready\n'
-                        '5. Download & use with Lively',
+                        '1. Add unlimited media files\n'
+                        '2. Supports videos & images\n'
+                        '3. Multiple selection\n'
+                        '4. Drag to reposition\n'
+                        '5. Compose when ready',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
