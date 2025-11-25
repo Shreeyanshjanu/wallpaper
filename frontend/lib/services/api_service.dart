@@ -9,9 +9,14 @@ class ApiService {
   ApiService._internal();
 
   late String baseUrl;
-
   void initialize() {
-    baseUrl = 'http://localhost:8000';
+    // Use production backend URL when deployed
+    baseUrl = const String.fromEnvironment('API_URL',
+        defaultValue: 'http://localhost:8000');
+
+    // Or hardcode production URL
+    // baseUrl = 'https://your-backend-api.com';
+
     print('API Service initialized with baseUrl: $baseUrl');
   }
 
@@ -26,15 +31,15 @@ class ApiService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl/api/compose-upload');
-      
+
       var request = http.MultipartRequest('POST', url);
-      
+
       // Add all media files
       for (var i = 0; i < mediaItems.length; i++) {
         final media = mediaItems[i];
         final bytes = mediaBytes[media.id];
         final mediaType = mediaTypes[media.id];
-        
+
         if (bytes != null) {
           final extension = mediaType == 'video' ? 'mp4' : 'png';
           request.files.add(
@@ -46,24 +51,26 @@ class ApiService {
           );
         }
       }
-      
+
       // Add metadata
       final metadata = {
-        'media_positions': mediaItems.map((m) => {
-          'id': m.id,
-          'media_type': m.mediaType,
-          'x': m.x,
-          'y': m.y,
-          'width': m.width,
-          'height': m.height,
-          'start_time': m.startTime,
-          'duration': m.duration,
-        }).toList(),
+        'media_positions': mediaItems
+            .map((m) => {
+                  'id': m.id,
+                  'media_type': m.mediaType,
+                  'x': m.x,
+                  'y': m.y,
+                  'width': m.width,
+                  'height': m.height,
+                  'start_time': m.startTime,
+                  'duration': m.duration,
+                })
+            .toList(),
         'canvas_width': canvasWidth,
         'canvas_height': canvasHeight,
         'output_duration': outputDuration,
       };
-      
+
       request.fields['metadata'] = jsonEncode(metadata);
 
       print('Sending ${mediaItems.length} media files to backend...');
