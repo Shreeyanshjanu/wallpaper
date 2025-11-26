@@ -9,14 +9,17 @@ class ApiService {
   ApiService._internal();
 
   late String baseUrl;
+  
   void initialize() {
-    // Use production backend URL when deployed
-    baseUrl = const String.fromEnvironment('API_URL',
-        defaultValue: 'http://localhost:8000');
-
-    // Or hardcode production URL
-    // baseUrl = 'https://your-backend-api.com';
-
+    // Check if running in production (release mode)
+    if (kReleaseMode) {
+      // Production - Your Render backend URL
+      baseUrl = 'https://wallpaper-composer-api.onrender.com'; // ⚠️ UPDATE THIS!
+    } else {
+      // Development
+      baseUrl = 'http://localhost:8000';
+    }
+    
     print('API Service initialized with baseUrl: $baseUrl');
   }
 
@@ -44,7 +47,7 @@ class ApiService {
           final extension = mediaType == 'video' ? 'mp4' : 'png';
           request.files.add(
             http.MultipartFile.fromBytes(
-              'media_files', // Changed from 'videos' to 'media_files'
+              'media_files',
               bytes,
               filename: '${media.id}.$extension',
             ),

@@ -2,11 +2,14 @@ name: wallpaper_composer
 description: Video wallpaper composition app
 publish_to: 'none'
 version: 1.0.0+1
+
 environment:
   sdk: '>=3.0.0 <4.0.0'
+
 dependencies:
   flutter:
     sdk: flutter
+  
   # Supabase for storage
   supabase_flutter: ^2.3.4
   three_dart: ^0.0.16
@@ -22,15 +25,16 @@ dependencies:
   http: ^0.13.6
   # State management
   provider: ^6.1.1
-  # Environment variables
-  flutter_dotenv: ^5.1.0
-  # UUID generation
+  # UUID generation & animations
   lottie: ^3.0.0
   uuid: ^4.3.3
+  # REMOVED: flutter_dotenv (not needed for production)
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+
 flutter:
   uses-material-design: true
   assets:
@@ -43,5 +47,3 @@ flutter:
     - assets/animations/welcome.json
     - assets/animations/next.json
     - assets/animations/flower_loading.json
-    
-    
