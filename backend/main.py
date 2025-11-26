@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import uvicorn
@@ -8,30 +8,36 @@ import json
 from typing import List
 
 from services.video_processor import VideoProcessor
-
 from models.schemas import ComposeResponse
 
 app = FastAPI(title="Wallpaper Video Composer API")
 
+# CORS Configuration - Allow your Netlify domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://wallpaper-composer.netlify.app",  # Your Netlify frontend
+        "http://localhost:3000",
+        "*"  # Allow all for testing
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-video_processor = VideoProcessor()
+# Create temp directory if it doesn't exist
+os.makedirs("temp", exist_ok=True)
 
+video_processor = VideoProcessor()
 
 @app.get("/")
 def read_root():
     return {"message": "Wallpaper Video Composer API is running"}
 
-
 @app.post("/api/compose-upload", response_model=ComposeResponse)
 async def compose_media_upload(
-        media_files: List[UploadFile] = File(...),  # Changed from 'videos' to 'media_files'
+        request: Request,  # Added to get base URL
+        media_files: List[UploadFile] = File(...),
         metadata: str = Form(...)
 ):
     """
@@ -50,8 +56,7 @@ async def compose_media_upload(
         # Save uploaded files
         media_paths = {}
         for media_file in media_files:
-            media_id = media_file.filename.replace('.mp4', '').replace('.png', '').replace('.jpg', '').replace('.jpeg',
-                                                                                                               '')
+            media_id = media_file.filename.replace('.mp4', '').replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
 
             # Determine extension from filename
             extension = media_file.filename.split('.')[-1]
@@ -92,8 +97,11 @@ async def compose_media_upload(
 
         file_name = os.path.basename(output_path)
 
+        # Get base URL dynamically (works in production and development)
+        base_url = str(request.base_url).rstrip('/')
+        
         return ComposeResponse(
-            download_url=f"http://localhost:8000/download/{file_name}",
+            download_url=f"{base_url}/download/{file_name}",  # ✅ Fixed!
             file_name=file_name
         )
 
@@ -103,10 +111,8 @@ async def compose_media_upload(
         raise HTTPException(status_code=500, detail=str(e))
 
     finally:
-        for temp_file in temp_files:
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
-
+        # Don't delete files immediately - keep them for download
+        pass
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):
@@ -119,11 +125,9 @@ async def download_file(filename: str):
         )
     raise HTTPException(status_code=404, detail="File not found")
 
-
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
-
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
